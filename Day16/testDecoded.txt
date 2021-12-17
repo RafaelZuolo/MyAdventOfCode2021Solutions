@@ -3,6 +3,22 @@ D2FE28
 packet version, 6
 packet type ID, 4,
 
+38006F45291200
+The three bits labeled V (001) are the packet version, 1.
+The three bits labeled T (110) are the packet type ID, 6, which means the packet is an operator.
+The bit labeled I (0) is the length type ID, which indicates that the length is a 15-bit number representing the number of bits in the sub-packets.
+The 15 bits labeled L (000000000011011) contain the length of the sub-packets in bits, 27.
+The 11 bits labeled A contain the first sub-packet, a literal value representing the number 10.
+The 16 bits labeled B contain the second sub-packet, a literal value representing the number 20.
+
+EE00D40C823060
+The three bits labeled V (111) are the packet version, 7.
+The three bits labeled T (011) are the packet type ID, 3, which means the packet is an operator.
+The bit labeled I (1) is the length type ID, which indicates that the length is a 11-bit number representing the number of sub-packets.
+The 11 bits labeled L (00000000011) contain the number of sub-packets, 3.
+The 11 bits labeled A contain the first sub-packet, a literal value representing the number 1.
+The 11 bits labeled B contain the second sub-packet, a literal value representing the number 2.
+The 11 bits labeled C contain the third sub-packet, a literal value representing the number 3.
 
 8A004A801A8002F478 
 represents an operator packet (version 4) which contains an 
