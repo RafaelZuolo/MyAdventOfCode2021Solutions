@@ -35,6 +35,24 @@ public class Day18_1 {
                 }
             }
         }
+         
+        Snail (Snail sn1, Snail sn2) {
+            Node current = sn1.first;
+            Node last = current;
+            while (current != null) {
+                current.level++;
+                last = current;
+                current = current.next;
+            }
+            current = sn2.first;
+            while (current != null) {
+                current.level++;
+                current = current.next;
+            }
+            last.next = sn2.first;
+            this.first = sn1.first;
+        }
+
         public String toString() {
             String s = "";
             Node current = first;
@@ -61,12 +79,51 @@ public class Day18_1 {
             }
             return false;
         }
+        public boolean split() {
+            Node current = first;
+            while (current != null) {
+                if (current.val >= 10) {
+                    int downVal = current.val/2;
+                    int upVal = current.val/2 + current.val%2;
+                    Node curNew = new Node(upVal, current.level+1);
+                    curNew.next = current.next;
+                    current.val = downVal;
+                    current.level++;
+                    current.next = curNew;
+                    return true; 
+                }
+                current = current.next;
+            }
+            return false;
+        }
+        public void reduce() {
+            while (this.explode()) {
+                continue;
+            }
+            while (this.split()) {
+                while (this.explode()) {
+                    continue;
+                }
+            }
+        }
+        public long norm() {
+            return 0;
+        }
+    }
+   
+    public static Snail add(Snail sn1, Snail sn2) {
+        Snail sum = new Snail(sn1, sn2);
+        sum.reduce();
+        return sum;
     }
     
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        Snail sn = new Snail(sc.nextLine());
-        System.out.println(sn);
-        System.out.println(sn.explode() + " " + sn);
+        Snail sn1 = new Snail(sc.nextLine());
+        while (sc.hasNextLine()) {
+            Snail sn2 = new Snail(sc.nextLine());
+            sn1 = add(sn1, sn2);
+        }
+        System.out.println(sn1);
     }
 }
