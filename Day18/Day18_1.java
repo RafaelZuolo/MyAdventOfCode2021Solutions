@@ -106,8 +106,30 @@ public class Day18_1 {
                 }
             }
         }
+
         public long norm() {
-            return 0;
+            int[] binCount = new int[]{3, 3, 3, 3};
+            Node current = first;
+            long normAcc = 0;
+            while (current != null) {
+                long temp = current.val;
+                for (int i = 0; i <= current.level; i++) {
+                    temp = temp*(long) binCount[i];
+                }
+                normAcc += temp;
+                //System.out.println(Arrays.toString(binCount));
+                binaryAdition(binCount, current.level);
+                current = current.next;
+            }
+            return normAcc;
+        }
+
+        static void binaryAdition(int[] bin, int level) {
+            if (bin[level] == 3)  bin[level] = 2;
+            else { 
+                bin[level] = 3;  
+                if (level> 0) binaryAdition(bin, level-1);
+            }
         }
     }
    
@@ -125,5 +147,6 @@ public class Day18_1 {
             sn1 = add(sn1, sn2);
         }
         System.out.println(sn1);
+        System.out.println(sn1.norm());
     }
 }
