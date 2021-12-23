@@ -1,33 +1,6 @@
 import java.util.*;
 public class BeaconScan {
 
-    class Beacon {
-        final int x, y, z;
-        Beacon(int a, int b, int c) {
-            x = a;
-            y = b;
-            z = c;
-        }
-        public String toString() {
-            return x+","+y+","+z;
-        }
-        public boolean equals(Object o) {
-            if (o == null || !(o instanceof Beacon))
-                return false;
-            if (((Beacon)o).x == x &&((Beacon)o).y == y
-                    &&((Beacon)o).z == z)
-                return true;
-            else return false;
-        }
-        public int hashCode() {
-            int hash = 31;
-            hash = 7*hash + x;
-            hash = 7*hash + y;
-            hash = 7*hash + z;
-            return hash;
-        }
-    }
-
     List<Beacon> xOrder = null;
     List<Beacon> yOrder = null;
     List<Beacon> zOrder = null;
