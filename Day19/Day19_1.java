@@ -1,6 +1,8 @@
 import java.util.*;
 public class Day19_1 {
+   
     
+
     public static void main(String[] args) {
 
         List<BeaconScan> scanList = new ArrayList<>();
@@ -16,6 +18,7 @@ public class Day19_1 {
             scanList.add(bc);
         }
         for (BeaconScan bc : scanList) {
+            bc.sortBeacon();
             System.out.println(bc);
         }
     }
