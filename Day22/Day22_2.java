@@ -1,6 +1,6 @@
 import java.util.*;
-public class Day22_1 {
-
+public class Day22_2 {
+    
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         boolean[][][] cubes = new boolean[101][101][101];
@@ -38,6 +38,5 @@ public class Day22_1 {
             }
         }
         System.out.println(numOn);
-    }
-    
+    }      
 }
