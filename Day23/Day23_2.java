@@ -1,6 +1,8 @@
 import java.util.*;
 public class Day23_2 {
    	static class State {
+        //int totalCost = -1; // to use in the shortest path algorithm.
+        //int adjCost = -1;   // to use in the shortest path algorithm.
 		char[][] hole;
 		char[] hall;
 		public State(char[][] ho, char[] ha) {
@@ -14,7 +16,9 @@ public class Day23_2 {
 			for (int i = 0; i < 4; i++) {
 				cloneHole[i] = Arrays.copyOf(hole[i], hole[i].length);
 			}
-			return new State(cloneHole, cloneHall);
+            State clone = new State(cloneHole, cloneHall);
+            //clone.cost = this.cost;
+			return clone;
 		}
 		
 		public int hashCode() {
@@ -31,7 +35,14 @@ public class Day23_2 {
 			return out;
 		}
 		
-		public boolean equals(State that) {
+		public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            
+            if (!(o instanceof State))
+                return false;
+            
+            State that = (State) o;
 			if (!Arrays.equals(this.hall, that.hall))
 				return false;
 			for (int i = 0; i < hole.length; i++) {
@@ -114,7 +125,7 @@ public class Day23_2 {
             // hole to hall movements
             char[] originalHole = new char[]{'A', 'B', 'C', 'D'}; // easy  map of index to hole type
             for (int i = 0; i < hole.length; i++) {
-                if (holeIsPure(originalHole[i], hole[i]) && lastPositionEmpty(hole[i]) < hole[i].length-1) // nothing will leave this hole
+                if (holeIsPure(originalHole[i], hole[i]) || lastPositionEmpty(hole[i]) == hole[i].length-1) // nothing will leave this hole
                     continue;
                 int position = lastPositionEmpty(hole[i]) + 1; // 
                 assert position < hole[i].length;    
@@ -150,6 +161,7 @@ public class Day23_2 {
 	}
 
     public static void main(String[] args) {
+        int leastEnergyOfTest = 44169;
 	    Scanner sc = new Scanner(System.in);
 		char[][] startHole = new char[4][4];
 		char[]	 startHall = new char[11];
@@ -164,15 +176,70 @@ public class Day23_2 {
 			}
 		}
 		State start = new State(startHole, startHall);
+        State cloneStart = start.clone();
 		System.out.println(start);
+        
+        char[][] endHole = new char[4][4];
+		char[]	 endHall = new char[11];
+        char[] originalHole = new char[]{'A', 'B', 'C', 'D'}; // easy  map of index to hole type
+		for (int i = 0; i < 11; i++) 
+			endHall[i] = '.';
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				endHole[i][j] = originalHole[i];
+			}
+		}
+		State end = new State(endHole, endHall);
+        System.out.println(end);
 
-		Map<State, Integer> Visited = new HashMap<>();
-		Map<State, Integer> Hook = new HashMap<>();
-		Hook.put(start, 0);
-		Map<State, Integer> test = start.adj();
-		for (State s : test.keySet())
-			System.out.println(s);
-        for (Integer s : test.values())
-			System.out.println(s);
+		Map<State, Integer> visited = new HashMap<>(); // States with minimum cost to get to them come here
+		Map<State, Integer> hook = new HashMap<>(); // Current visit cost of frontier unvisited states 
+        //Map<State, State>   hookOrigin = new HashMap<>(); // "frontier"
+		hook.put(start, 0);
+        
+        
+        for (int i = 0; i >=0  ; i++) {
+            Map.Entry<State, Integer> minCostState = selectMin(hook);
+            visited.put(minCostState.getKey(), minCostState.getValue());
+            hook.remove(minCostState.getKey());
+            if (visited.containsKey(end)) {
+                System.out.println(visited.get(end));
+                break;
+            }
+            if (i%1000 == 0) System.out.println((minCostState.getValue() < leastEnergyOfTest) + " " + i);
+            //System.out.println(start.hashCode() == cloneStart.hashCode());
+            //System.out.println("equals test "+start.equals(cloneStart) + " " + cloneStart.equals(start));
+            //System.out.println("visited.containsKey() test "+visited.containsKey(cloneStart) + " " + visited.containsKey(start));
+            //System.out.println(hook.size());
+            
+            for (Map.Entry<State, Integer> frontierState : minCostState.getKey().adj().entrySet()) {
+                if (visited.containsKey(frontierState.getKey()))
+                    continue;
+                Integer newCost = hook.putIfAbsent(frontierState.getKey(), minCostState.getValue() + frontierState.getValue());
+                if (newCost != null && newCost.compareTo(hook.get(frontierState.getKey())) < 0) {
+                    hook.replace(frontierState.getKey(), newCost);
+                }
+            }   
+            //System.out.println(hook.size());
+        }
+        /* for (State s : visited.keySet()) {
+            System.out.println(s);
+        }
+        System.out.println("\n");
+        for (State s : hook.keySet()) {
+            System.out.println(s);
+        } */
 	}
+    
+    public static Map.Entry<State, Integer> selectMin(Map<State, Integer> map) {
+        Map.Entry<State, Integer> min = null;
+        for (Map.Entry<State, Integer> e : map.entrySet()) {
+            if (min == null) {
+                min = e;
+            } else if (e.getValue().compareTo(min.getValue()) < 0){
+                min = e;
+            }
+        }
+        return min;
+    }
 }
