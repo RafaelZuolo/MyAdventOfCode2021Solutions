@@ -143,7 +143,7 @@ public class Day23_2 {
                     assert amphipod != '.';
                     if      ( amphipod == 'B' ) multiplicator = 10;
                     else if ( amphipod == 'C' ) multiplicator = 100;
-                    else if ( amphipod == 'D' ) multiplicator = 100;
+                    else if ( amphipod == 'D' ) multiplicator = 1000;
                     
                     
                     if (hallIsClear(hallStartPos, j, this.hall)) {
@@ -206,17 +206,23 @@ public class Day23_2 {
                 System.out.println(visited.get(end));
                 break;
             }
-            if (i%1000 == 0) System.out.println((minCostState.getValue() < leastEnergyOfTest) + " " + i);
+            if (i%1000 == 0) System.out.println(hook.size() + " " + visited.size() + " " + i);
             //System.out.println(start.hashCode() == cloneStart.hashCode());
             //System.out.println("equals test "+start.equals(cloneStart) + " " + cloneStart.equals(start));
             //System.out.println("visited.containsKey() test "+visited.containsKey(cloneStart) + " " + visited.containsKey(start));
             //System.out.println(hook.size());
             
             for (Map.Entry<State, Integer> frontierState : minCostState.getKey().adj().entrySet()) {
-                if (visited.containsKey(frontierState.getKey()))
+                if (frontierState.getKey().equals(end)) {
+                    System.out.println(minCostState.getKey() + "\n" + minCostState.getValue()+"\n");
+                }
+                    
+                if (visited.containsKey(frontierState.getKey())) {
                     continue;
-                Integer newCost = hook.putIfAbsent(frontierState.getKey(), minCostState.getValue() + frontierState.getValue());
-                if (newCost != null && newCost.compareTo(hook.get(frontierState.getKey())) < 0) {
+                }
+                int newCost = minCostState.getValue() + frontierState.getValue();
+                Integer oldCost = hook.putIfAbsent(frontierState.getKey(), newCost);
+                if (oldCost != null && oldCost.compareTo(newCost) > 0) {
                     hook.replace(frontierState.getKey(), newCost);
                 }
             }   
