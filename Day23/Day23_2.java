@@ -120,19 +120,28 @@ public class Day23_2 {
                 assert position < hole[i].length;    
                 int hallStartPos = (i+1)*2;   // position in the hall
                 for (int j = 0; j < hall.length; j++) {
+                    // forbidden hall positions
+                    if (j==2 || j==4 || j==6 || j==8) 
+                        continue; 
+                    
                     int cost = position + 1; // cost of moving out of the hole
                     int multiplicator = 1;
                     char amphipod = hole[i][position];
+                    
+                    // setting the right cost multiplicator
                     assert amphipod != '.';
-                    if ( == 'B' )
-                    if (j==2 || j==4 || j==6 || j==8) 
-                        continue; // forbidden hall positions
+                    if      ( amphipod == 'B' ) multiplicator = 10;
+                    else if ( amphipod == 'C' ) multiplicator = 100;
+                    else if ( amphipod == 'D' ) multiplicator = 100;
+                    
+                    
                     if (hallIsClear(hallStartPos, j, this.hall)) {
+                        cost += Math.abs(hallStartPos - j);
                         State step = this.clone();
                         assert hall[j] == '.';
                         step.hall[j] = step.hole[i][position];
                         step.hole[i][position] = '.';
-                        adj.put(step, )
+                        adj.put(step, cost*multiplicator);
                     }
                 }
             }
@@ -162,6 +171,8 @@ public class Day23_2 {
 		Hook.put(start, 0);
 		Map<State, Integer> test = start.adj();
 		for (State s : test.keySet())
+			System.out.println(s);
+        for (Integer s : test.values())
 			System.out.println(s);
 	}
 }
