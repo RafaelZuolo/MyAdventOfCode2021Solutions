@@ -7,6 +7,9 @@ public class BeaconScan {
     int dir = 0;
     int rot = 0;
     
+    int[][] rotM = new int[][]{{1,0,0},{0,1,0},{0,0,1}}; // identity matrix
+    int[] displ = new int[]{0,0,0};
+    
     BeaconScan() {
         xOrder = new ArrayList<Beacon>();
         yOrder = new ArrayList<Beacon>();
@@ -25,6 +28,13 @@ public class BeaconScan {
         yOrder.add(b);
         zOrder.add(b);
     }
+    
+    public void addBeacon(Beacon b) {
+        Beacon bNew = b.clone();
+        xOrder.add(bNew);
+        yOrder.add(bNew);
+        zOrder.add(bNew);
+    }
     public void addBeacon(String s) {
         String[] vals = s.split(",");
         addBeacon(Integer.parseInt(vals[0]),
@@ -40,5 +50,13 @@ public class BeaconScan {
         }
         return s.toString();
     }
-
+    public List<Beacon> transformedBeacons() {
+        List<Beacon> l = new ArrayList<>();
+        for (Beacon b : xOrder) {
+            l.add(new Beacon(rotM[0][0]*b.x + rotM[0][1]*b.y + rotM[0][2]*b.z + displ[0],
+                             rotM[1][0]*b.x + rotM[1][1]*b.y + rotM[1][2]*b.z + displ[1],
+                             rotM[2][0]*b.x + rotM[2][1]*b.y + rotM[2][2]*b.z + displ[2]));
+        }
+        return l;
+    }
 }

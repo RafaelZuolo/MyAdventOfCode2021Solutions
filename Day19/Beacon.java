@@ -6,6 +6,13 @@ public class Beacon {
         y = b;
         z = c;
     }
+    
+    // return the square of the distance of this Beacon to that Beacon
+    public long sqrDistanceTo(Beacon that) {
+        return (long)((this.x - that.x)*(this.x - that.x)
+                     +(this.y - that.y)*(this.y - that.y)
+                     +(this.z - that.z)*(this.z - that.z));
+    }
     public String toString() {
         return x+","+y+","+z;
     }
