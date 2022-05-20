@@ -1,11 +1,10 @@
 import java.util.*;
 public class BeaconScan {
-
+    
+    List<Beacon> beaconList = null;
     List<Beacon> xOrder = null;
     List<Beacon> yOrder = null;
     List<Beacon> zOrder = null;
-    int dir = 0;
-    int rot = 0;
     
     int[][] rotM = new int[][]{{1,0,0},{0,1,0},{0,0,1}}; // identity matrix
     int[] displ = new int[]{0,0,0};
@@ -14,6 +13,7 @@ public class BeaconScan {
         xOrder = new ArrayList<Beacon>();
         yOrder = new ArrayList<Beacon>();
         zOrder = new ArrayList<Beacon>();
+        beaconList = new ArrayList<Beacon>();
     }
     
     public void sortBeacon() {
@@ -27,6 +27,7 @@ public class BeaconScan {
         xOrder.add(b);
         yOrder.add(b);
         zOrder.add(b);
+        beaconList.add(b);
     }
     
     public void addBeacon(Beacon b) {
@@ -34,6 +35,7 @@ public class BeaconScan {
         xOrder.add(bNew);
         yOrder.add(bNew);
         zOrder.add(bNew);
+        beaconList.add(bNew);
     }
     public void addBeacon(String s) {
         String[] vals = s.split(",");
@@ -58,5 +60,21 @@ public class BeaconScan {
                              rotM[2][0]*b.x + rotM[2][1]*b.y + rotM[2][2]*b.z + displ[2]));
         }
         return l;
+    }
+    public String toStringTransformed() {
+        StringBuilder s = new StringBuilder();
+        for (Beacon b : this.transformedBeacons()) {
+            s.append(b.toString()+"\n");
+        }
+        return s.toString();
+    }
+    
+    public String metaData() {
+        StringBuilder s = new StringBuilder();
+        s.append("Displ = " + Arrays.toString(displ)+"\n");
+        s.append("rotM = \n" + Arrays.toString(rotM[0]) + "\n");
+        s.append(Arrays.toString(rotM[1]) + "\n");
+        s.append(Arrays.toString(rotM[2]));
+        return s.toString();
     }
 }

@@ -4,43 +4,7 @@ public class Day19_1 {
    // try 1 : 261 was too low
    // try 2 : 285 was too low
    // try 3 : 364 was too high
-   /* public static int[] getDisplacement(Beacon a, Beacon b) {
-        int[] disp = new int[3];
-        disp[0] = a.x - b.x;
-        disp[1] = a.y - b.y;
-        disp[2] = a.z - b.z;
-        return disp;
-    }
-
-    public static int intersectionSize(BeaconScan a, BeaconScan b) {
-        int intersec = 0;
-        Beacon aFirst = a.xOrder.get(0);
-        Beacon bLast = b.xOrder.get(b.xOrder.size()-1);
-        int maxInter = 0;
-        for (int i = 0; i < a.xOrder.size(); i++) {
-            Beacon aTest = a.xOrder.get(i);
-            int dispX = aTest.x - bLast.x;
-            int dispY = aTest.y - bLast.y;
-            int dispZ = aTest.z - bLast.z;
-            int xMax = aFirst.x; 
-            int yMax = aFirst.y; 
-            int zMax = aFirst.z; 
-            Beacon bCurrent = bLast;
-            for (int j = b.xOrder.size()-1; bCurrent.x + dispX <= xMax 
-            && j >= 0; j--) {
-                bCurrent = b.xOrder.get(j);
-                if (!a.xOrder.contains(new Beacon(bCurrent.x + dispX, 
-                                bCurrent.y + dispY, 
-                                bCurrent.z + dispZ))) { 
-                    intersec = 0;
-                    break;
-                }
-                intersec++;
-            }
-            maxInter = Math.max(intersec, maxInter);
-        }
-        return maxInter;
-    } */
+   // try 4 : 303 was right!
 
     public static void main(String[] args) {
         
@@ -94,13 +58,30 @@ public class Day19_1 {
         // In our instance, we will abuse the fact that all distances are distinct
         // and map the value of the distance to the pair of index of the beacon X list that generated it
         Map<BeaconScan, List<Long>> distanceList = new HashMap<>();
+        //Map<BeaconScan, Set<Long>> scanToDistMap = new HashMap<>();
         Map<BeaconScan, Map<Long, Set<Integer>>> ScanToDistToIndex = new HashMap<>();
+        Map<BeaconScan, Map<Long, Set<Beacon>>> ScanToDistToBeacon = new HashMap<>();
         
         for (BeaconScan bs : scanList) {
             // put all pair distances of beacons relative to the sensor
             List<Long> distances = new ArrayList<>();
+            //Set<Long> distanceSet = new HashSet<>();
             Map<Long, Set<Integer>> distMap = new HashMap<>();
+            Map<Long, Set<Beacon>> distBeaconMap = new HashMap<>();
             
+            for (Beacon b1 : bs.xOrder) {
+                for (Beacon b2 : bs.xOrder) {
+                    if (b1.equals(b2)) continue;
+                    long dist = b1.sqrDistanceTo(b2);
+                    //distanceSet.add(dist);
+                    
+                    Set<Beacon> duplicate = distBeaconMap.putIfAbsent(dist, Set.of(b1,b2));
+                    if (duplicate != null) {
+                        assert duplicate.equals(Set.of(b1,b2));
+                    }
+                }
+            }
+            //scanToDistMapTo.put(bs, distanceSet);
             for (int i = 0; i < bs.xOrder.size(); i++) {
                 Beacon b1 = bs.xOrder.get(i);
                 for (int j = i+1; j < bs.xOrder.size(); j++) {
@@ -113,7 +94,9 @@ public class Day19_1 {
             distances.sort(null);
             distanceList.put(bs, distances);
             ScanToDistToIndex.put(bs, distMap);
+            ScanToDistToBeacon.put(bs, distBeaconMap);
             assert (distances.size() == distMap.size());
+            assert (distances.size() == distBeaconMap.size());
         }
         
         
@@ -127,52 +110,48 @@ public class Day19_1 {
             BeaconScan toAdd = null;
             for (BeaconScan bs1 : scanNotAdded) {
                 for (BeaconScan bs2 : scanAdded) {
-                    int partialCount = overCounter(bs1, bs2, distanceList);
-                    partialCount = (int)((2 + Math.sqrt(1 + 8*partialCount))/2);
-                    if (partialCount >= 12) {
-                        Map<Long, Set<Integer>> map1 = ScanToDistToIndex.get(bs1);
-                        Map<Long, Set<Integer>> map2 = ScanToDistToIndex.get(bs2);
-                        // get the indexes of the intersection
-                        Set<Integer> intersec1 = new HashSet<>();
-                        Set<Integer> intersec2 = new HashSet<>();
-                        for (Long l : map1.keySet()) {
-                            if (map2.containsKey(l)) {
-                                intersec1.addAll(map1.get(l));
-                                intersec2.addAll(map2.get(l));
-                            }
+                    Map<Long, Set<Beacon>> mapB1 = ScanToDistToBeacon.get(bs1);
+                    Map<Long, Set<Beacon>> mapB2 = ScanToDistToBeacon.get(bs2);
+                    // get the indexes of the intersection
+                    Set<Beacon> intersecB1 = new HashSet<>();
+                    Set<Beacon> intersecB2 = new HashSet<>();
+                    int test = 0;
+                    for (Long l : mapB1.keySet()) {
+                        if (mapB2.containsKey(l)) {
+                            test++;
+                            intersecB1.addAll(mapB1.get(l));
+                            intersecB2.addAll(mapB2.get(l));
                         }
-                        assert intersec1.size() == 12;
-                        assert intersec2.size() == 12;
+                    }
+                    test = (int)((2 + Math.sqrt(1 + 8*test))/2);                    
+                    if (intersecB1.size() == 12) {
+                        //System.out.println("test size = " + test+ ". sizes = " + intersecB1.size() + ", " + intersecB2.size());
+                        assert intersecB2.size() == test;
+                        assert intersecB1.size() == test;
+                    
                         // deduce rotation matrix and displacement, then remove from scanNotAdded and add to scanAdded with the correct matrix and displacement
                         Map<Beacon, Beacon> beaconPairing = new HashMap<>(); // map the "equal beacons"
-                        for (Integer i : intersec1) {
-                            int first = -1;
-                            int second = -1;
-                            for (Integer j : intersec1) {
-                                if (i == j) continue;
-                                if (first == -1) first = j;
-                                else             second = j;
+                        for (Beacon b1 : intersecB1) {
+                            Beacon c1=null, c2 = null;
+                            for (Beacon b2 : intersecB1) {
+                                if (b1.equals(b2)) continue;
+                                if (c1 == null) c1 = b2;
+                                else { c2 = b2; break;}
                             }
-                            assert first != second;
-                            long d1 = bs1.xOrder.get(i).sqrDistanceTo(bs1.xOrder.get(first));
-                            long d2 = bs1.xOrder.get(i).sqrDistanceTo(bs1.xOrder.get(second));
+                            long d1 = b1.sqrDistanceTo(c1);
+                            long d2 = b1.sqrDistanceTo(c2);
                             assert d1 != d2;
-                            int pairedBeaconAdr = -1;
-                            for (Integer k : map2.get(d1)) {
-                                for (Integer l : map2.get(d2)) {
-                                    if (k.equals(l)) pairedBeaconAdr = k;
+                            for (Beacon candidate1 : mapB2.get(d1)) {
+                                for (Beacon candidate2 : mapB2.get(d2)) {
+                                    if (candidate1.equals(candidate2)) {
+                                        beaconPairing.put(b1, candidate1);
+                                    }
                                 }
                             }
-                            assert pairedBeaconAdr != -1;
-                            //System.out.println("ok");
-                            //System.exit(1);
-                            beaconPairing.put(bs1.xOrder.get(i), bs2.xOrder.get(pairedBeaconAdr));
                         }
-                        assert beaconPairing.size() == 12;
-                        //System.out.println("ok12");
-                        //System.exit(1);
-                        // we have the beacon "pairing", now we need to deduce the matrix and displacement
-                        // first we grab one beacon
+                        
+                        assert beaconPairing.size() == 12; 
+                        
                         Beacon pivot = null;
                         for (Beacon b : beaconPairing.keySet()) {
                             pivot = b;
@@ -198,11 +177,17 @@ public class Day19_1 {
                                 }
                             }
                             if (matrixAndDisplIsCorrect) {
+                                //printRotM(rotationSet[i]);
+                                //System.out.println("displ = " + Arrays.toString(displTry));
+                                //System.out.println("\n");
+                                
                                 bs1.rotM = matrixMult(bs2.rotM, rotationSet[i]);
+                                int[] partialDispl = arrayMult(bs2.rotM, displTry);
+                                //bs1.rotM = matrixMult( rotationSet[i],bs2.rotM);
                                 bs1.displ = new int[3];
-                                bs1.displ[0] = bs2.displ[0] + displTry[0];
-                                bs1.displ[1] = bs2.displ[1] + displTry[1];
-                                bs1.displ[2] = bs2.displ[2] + displTry[2];
+                                bs1.displ[0] = bs2.displ[0] + partialDispl[0];
+                                bs1.displ[1] = bs2.displ[1] + partialDispl[1];
+                                bs1.displ[2] = bs2.displ[2] + partialDispl[2];
                                 toAdd = bs1;
                                 break;
                             }
@@ -219,55 +204,7 @@ public class Day19_1 {
             scanAdded.add(toAdd);
             scanNotAdded.remove(toAdd);
         }
-        System.out.println(absoluteScan.size());
-        /*
-        for (int i = 0; i < scanList.size(); i++) {
-            BeaconScan bs1 = scanList.get(i);
-            //overCount += bs1.xOrder.size();
-            for (int j = i+1; j < scanList.size(); j++) {
-                //duplas++;
-                BeaconScan bs2 = scanList.get(j);
-                int partialCount = overCounter(bs1, bs2, distanceList);
-                //System.out.println("partialCount no sqrt = " + partialCount);
-                partialCount = (int)((2 + Math.sqrt(1 + 8*partialCount))/2);
-                System.out.println("partialCount sqrt of " + i + " and " + j + " = " + partialCount);
-                if (partialCount >= 12) {
-                    intersectCount += partialCount;  
-                    System.out.println("pair: "+i + ", " + j);
-                }
-            }                    
-        }
-
-        for (int i = 0; i < scanList.size(); i++) {
-            BeaconScan bs1 = scanList.get(i);
-            Set<Integer> beaconIndexesToCount = new HashSet<>();
-            for (int j = 0; j < bs1.xOrder.size(); j++) {
-                beaconIndexesToCount.add(j);
-            }
-            System.out.println(beaconIndexesToCount.size() + " is the initial size" );
-            System.out.println("Inserted indexes:");
-            for (Integer in : beaconIndexesToCount) {
-                System.out.print(in + ", ");
-            }
-            System.out.println();
-            for (int j = 0; j < i; j++) {
-                BeaconScan bs2 = scanList.get(j);
-                int partialCount = overCounter(bs1, bs2, distanceList);
-                partialCount = (int)((2 + Math.sqrt(1 + 8*partialCount))/2);
-                // remove the beacons that are in the intersection, since the have been counted already
-                if (partialCount >= 12) { 
-                    System.out.println("Got overlapping pairs: " + i + ", " +j);
-                    duplicateIndexSetRemover(ScanToDistToIndex, distanceList, bs1, bs2, beaconIndexesToCount);   
-                }
-                System.out.println("pair " + i + ", " + j + " changed to "+ beaconIndexesToCount.size());
-            }
-            correctedCount += beaconIndexesToCount.size();
-        }
-        //System.out.println(overCount+ " " + intersectCount);
-        //System.out.println(overCount - intersectCount);
-        //System.out.println(intersectionSize(scanList.get(0), scanList.get(1)));
-        System.out.println(correctedCount);
-        */
+        System.out.println("Part 1 answer: " + absoluteScan.size());
     }
     
     public static int[][] matrixMult(int[][] A, int[][] B) {
@@ -283,6 +220,23 @@ public class Day19_1 {
         return C;
     }
     
+    public static int[] arrayMult(int[][] A, int[] u) {
+        assert A[0].length == u.length;
+        int[] v = new int[A.length];
+        for (int i = 0; i < A.length; i++) {
+            for (int j = 0; j < u.length; j++) {
+                v[i] += A[i][j]*u[j];
+            }
+        }
+        return v;
+    }
+    
+    public static void printRotM(int[][] rotM) {
+        System.out.println(Arrays.toString(rotM[0]));
+        System.out.println(Arrays.toString(rotM[1]));
+        System.out.println(Arrays.toString(rotM[2]));
+    }
+    
     public static Beacon applyRot(Beacon b, int[][] rotM) {
         return new Beacon(rotM[0][0]*b.x + rotM[0][1]*b.y + rotM[0][2]*b.z,
                           rotM[1][0]*b.x + rotM[1][1]*b.y + rotM[1][2]*b.z,
@@ -293,72 +247,6 @@ public class Day19_1 {
         return new Beacon(rotM[0][0]*b.x + rotM[0][1]*b.y + rotM[0][2]*b.z + displ[0],
                           rotM[1][0]*b.x + rotM[1][1]*b.y + rotM[1][2]*b.z + displ[1],
                           rotM[2][0]*b.x + rotM[2][1]*b.y + rotM[2][2]*b.z + displ[2]);
-    }
-    
-    public static int overCounter(BeaconScan bs1, 
-                                  BeaconScan bs2, 
-                                  Map<BeaconScan, List<Long>> distanceList) {
-        int count = 0;
-        List<Long> l1 = distanceList.get(bs1);
-        // check if all distances are distincts
-        for (int i = 0; i < l1.size()-1; i++) {
-            assert (!l1.get(i).equals(l1.get(i+1)));
-        }
-        List<Long> l2 = distanceList.get(bs2);
-        int i = 0, j = 0;
-        l1.sort(null);
-        l2.sort(null);
-        while (i <l1.size() && j < l2.size()) {
-            if (l1.get(i).equals(l2.get(j))) {
-                i++; j++; count++;
-                
-            } else if (l1.get(i).compareTo(l2.get(j)) < 0) {
-                i++;
-            } else {
-                j++;
-            }
-        }
-        return count;
-    }
-    
-    public static void duplicateIndexSetRemover(
-                            Map<BeaconScan, Map<Long, Set<Integer>>> ScanToDistToIndex,
-                            Map<BeaconScan, List<Long>> distanceList,
-                            BeaconScan bs1, BeaconScan bs2, 
-                            Set<Integer> beaconIndexesToCount) {
-        Set<Integer> duplicatedIndexes = new HashSet<>();
-        Map<Long, Set<Integer>> m1 = ScanToDistToIndex.get(bs1);
-        List<Long> l1 = distanceList.get(bs1);
-        List<Long> l2 = distanceList.get(bs2);
-        // check if all distances are distincts
-        for (int i = 0; i < l1.size()-1; i++) {
-            assert (!l1.get(i).equals(l1.get(i+1)));
-        }
-        int i = 0, j = 0;
-        //l1.sort(null);  // they are already sorted
-        //l2.sort(null);
-        while (i <l1.size() && j < l2.size()) {
-            if (l1.get(i).equals(l2.get(j))) {
-                // for each pair of indexes that have dist l1.get(i), remove them from beaconIndexesToCount
-                for (Integer index : m1.get(l1.get(i))) {
-                    //System.out.print(index + "---");
-                    beaconIndexesToCount.remove(index);
-                    duplicatedIndexes.add(index);
-                }
-                // System.out.println();
-                i++; 
-                j++; 
-            } else if (l1.get(i).compareTo(l2.get(j)) < 0) {
-                i++;
-            } else {
-                j++;
-            }
-        }
-        System.out.println("Duplicated indexes:");
-        for (Integer in : duplicatedIndexes) {
-            System.out.print(in + ", ");
-        }
-        System.out.println();
     }
 }
 

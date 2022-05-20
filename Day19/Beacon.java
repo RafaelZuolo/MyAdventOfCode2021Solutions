@@ -19,8 +19,7 @@ public class Beacon {
     public boolean equals(Object o) {
         if (o == null || !(o instanceof Beacon))
             return false;
-        if (((Beacon)o).x == x &&((Beacon)o).y == y
-                &&((Beacon)o).z == z)
+        if (((Beacon)o).x == x &&((Beacon)o).y == y &&((Beacon)o).z == z)
             return true;
         else return false;
     }
