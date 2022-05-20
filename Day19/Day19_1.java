@@ -205,6 +205,24 @@ public class Day19_1 {
             scanNotAdded.remove(toAdd);
         }
         System.out.println("Part 1 answer: " + absoluteScan.size());
+        
+        long maxBSdist = 0;
+        for (BeaconScan bs1 : scanList) {
+            for (BeaconScan bs2 : scanList) {
+                if (bs1 == bs2) continue;
+                maxBSdist = Math.max(maxBSdist, taxiDist(bs1.displ, bs2.displ));
+            }
+        }
+        System.out.println("Part 2 answer: " + maxBSdist);
+    }
+    
+    public static long taxiDist(int[] a, int[] b) {
+        assert a.length == b.length;
+        long dist = 0;
+        for (int i = 0; i < a.length; i++) {
+            dist += Math.abs(a[i] - b[i]);
+        }
+        return dist;
     }
     
     public static int[][] matrixMult(int[][] A, int[][] B) {
